@@ -1,0 +1,22 @@
+{
+  "name": "template-moduled",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "npx webpack serve --no-client-overlay --live-reload",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL",
+  "devDependencies": {
+    "webpack": "^5.76.1",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "description": "",
+  "dependencies": {
+    "three": "^0.158.0"
+  }
+}
