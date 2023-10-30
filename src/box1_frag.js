@@ -1,12 +1,12 @@
 
 const box1_frag = /* glsl */`
 uniform vec2 size;
+uniform vec2 touchSize;
 uniform vec3 mouse;
 uniform sampler2D tLUT;
 uniform sampler2D tFrameBuffer;
 varying vec2 vUv;
 
-float gradientSize = 50.0;
 float lutPixelWidth = 1000.0;
 float ATTENUATION = 4.0;
 
@@ -28,10 +28,16 @@ vec3 hsv2rgb(vec3 c)
 }
 
 void main() {
-
+    //mouse pos
     vec2 mouseNorm = vec2(
         map(mouse.x, -size.x/2.0, size.x/2.0, 0.0, 1.0),
         map(mouse.y, size.y/2.0, -size.y/2.0, 0.0, 1.0)
+    );
+
+    // size of touch radius
+    vec2 touchSizeNorm = vec2(
+        1.0 / size.x * touchSize.x,
+        1.0 / size.y * touchSize.y
     );
 
     vec2 p = vec2(floor(gl_FragCoord.x), floor(gl_FragCoord.y));
@@ -47,26 +53,28 @@ void main() {
 
     float distRad = radDist(mouseNorm, pNorm);
 
-    // if(distRad > (1.0 / size.x * gradientSize)) discard;
-
     // LUT COLOR
 
     // vec2 lutPos = vec2(
-    //     map(distRad,0.0,gradientSize,0.0, lutPixelWidth),
-    //     map(distRad,0.0,gradientSize,0.0, lutPixelWidth)
+    //     map(distRad,0.0,touchSize.x,0.0, lutPixelWidth),
+    //     map(distRad,0.0,touchSize.y,0.0, lutPixelWidth)
     // );
     vec2 uv = gl_FragCoord.xy / size.xy;
     // vec3 col = texture2D(tLUT, lutPos).xyz;
     // vec3 col = vec3(red,0.0,0.0);
 
     //HSV COLOR
-    //map distRad from 1.0 - 0.0 to 0.2 - 0.0
     // vec3 col = hsv2rgb(vec3(map(distRad,1.0,0.0,0.2,0.0), 1.0,1.0));
-    float blue = map(distRad, 0.0, 0.05, 0.6, 0.0);
-    float g = map(distRad, 0.0, 0.02, 0.6, 0.0);
-    float red = map(distRad, 0.0, 0.05, 0.0, 1.0);
 
-    vec3 col = vec3(red,g,blue);
+    // float size_b = 0.05;
+    float size_b = touchSizeNorm.x;
+    float size_g = touchSizeNorm.x * 0.4;
+    float size_r = touchSizeNorm.x;
+    float b = map(distRad, 0.0, size_b, 0.6, 0.0);
+    float g = map(distRad, 0.0, size_g, 0.6, 0.0);
+    float r = map(distRad, 0.0, size_r, 0.0, 0.01);
+
+    vec3 col = vec3(r,g,b);
 
     vec3 lastFrameCol = texture2D(tFrameBuffer, uv).xyz;
     lastFrameCol *= ATTENUATION;

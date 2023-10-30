@@ -7,25 +7,35 @@
   <style>
     body {
       background-color: #000;
-      height: 100vh;
+      height: 200vh;
       overflow: hidden;
     }
 
     canvas {
       margin: 0;
       position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-right: -50%;
-      transform: translate(-50%, -50%);
-      border: solid 1px red;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: solid 10px green;
+    }
+
+    #canvasContainer {
+      position: absolute;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      border: solid 10px red;
+
     }
   </style>
 </head>
 
 <body>
+  <div id="canvasContainer"></div>
   <script src="main.js"></script>
-  <!-- <script src="../js/v0xels/v0xel-1.js"></script> -->
 </body>
 
 </html>

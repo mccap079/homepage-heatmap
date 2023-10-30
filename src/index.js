@@ -36,16 +36,20 @@ const isMobile = {
 
 ///Canvas sizing/layout
 
-var width = roundEven(window.innerWidth);
-var height = roundEven(window.innerHeight);
-var canvasPlaneSize = new THREE.Vector2(
-    width,
-    height
-);
+let rendererSz = new THREE.Vector2(0, 0);
+
+var width = 0;
+var height = 0;
+var canvasPlaneSize = new THREE.Vector2(0, 0);
+
+// instantiate a framebuffer texture
+// const pixelRatio = window.devicePixelRatio;
+let textureSize = new THREE.Vector2(0, 0);
+let frameTexture = null;
 
 ///Meta scene
-var pixelSz = 1;
-if (isMobile.any()) pixelSz = 2;
+var pixelSz = 4;
+if (isMobile.any()) pixelSz = 4;
 ///screenCamera looks at the quad that renders the scene
 ///screenScene is the scene that contains the screen quad
 var screenCamera, screenScene;
@@ -59,24 +63,48 @@ var camera, scene, renderer;
 ///Scene objects
 var b, point;
 
-var mouse = new THREE.Vector3(0, 0, 0);
+var mouse = new THREE.Vector3(-1000, 0, 0);
 var isMouseDown = false;
 
 const lutTex = new THREE.TextureLoader().load(lut);
 
-// instantiate a framebuffer texture
-// const pixelRatio = window.devicePixelRatio;
-const pixelRatio = pixelSz;
-const textureSize = new THREE.Vector2(
-    canvasPlaneSize.x * pixelRatio,
-    canvasPlaneSize.y * pixelRatio
-);
-const frameTexture = new THREE.FramebufferTexture(
-    textureSize.x,
-    textureSize.y
-);
+var touchSize = new THREE.Vector2(50, 50);
+touchSize.x /= pixelSz;
+touchSize.y /= pixelSz;
 
 function init() {
+
+    //create a webGL renderer
+    renderer = new THREE.WebGLRenderer({
+        antialias: false
+    });
+    let container = document.getElementById("canvasContainer");
+    renderer.setSize(container.offsetWidth, container.offsetHeight);
+    renderer.setClearColor(0x7e7e7e);
+    renderer.autoClear = false;
+    document.body.appendChild(renderer.domElement);
+    renderer.getSize(rendererSz);
+    console.log("rendererSz = ", rendererSz);
+
+    // Set sizes of things based on renderer size
+
+    width = roundEven(rendererSz.x);
+    height = roundEven(rendererSz.y);
+    canvasPlaneSize = new THREE.Vector2(
+        width,
+        height
+    );
+
+    // instantiate a framebuffer texture
+    // const pixelRatio = window.devicePixelRatio;
+    textureSize = new THREE.Vector2(
+        canvasPlaneSize.x * pixelSz,
+        canvasPlaneSize.y * pixelSz
+    );
+    frameTexture = new THREE.FramebufferTexture(
+        textureSize.x,
+        textureSize.y
+    );
 
     // create scenes
     scene = new THREE.Scene();
@@ -113,15 +141,6 @@ function init() {
     screenQuad.position.z = - 100;
     screenScene.add(screenQuad);
 
-    //create a webGL renderer
-    renderer = new THREE.WebGLRenderer({
-        antialias: false
-    });
-    renderer.setSize(width, height);
-    renderer.setClearColor(0x7e7e7e);
-    renderer.autoClear = false;
-    document.body.appendChild(renderer.domElement);
-
     // Controls
     // controls = new OrbitControls(camera, renderer.domElement);
 
@@ -135,6 +154,9 @@ function init() {
         uniforms: {
             "size": {
                 value: canvasPlaneSize
+            },
+            "touchSize": {
+                value: touchSize
             },
             "mouse": {
                 value: mouse
@@ -160,13 +182,13 @@ function init() {
     point = new THREE.Mesh(point_g, point_m);
     // scene.add(point);
 
-    let test_g = new THREE.BoxGeometry(100, 100, 100);
-    let test_m = new THREE.MeshBasicMaterial({
-        map: frameTexture,
-        shading: THREE.FlatShading
-    });
-    let test = new THREE.Mesh(test_g, test_m);
-    scene.add(test);
+    // let test_g = new THREE.BoxGeometry(100, 100, 100);
+    // let test_m = new THREE.MeshBasicMaterial({
+    //     map: frameTexture,
+    //     shading: THREE.FlatShading
+    // });
+    // let test = new THREE.Mesh(test_g, test_m);
+    // scene.add(test);
 
     //////////////////////////
     // Event listeners ///////
@@ -175,6 +197,26 @@ function init() {
     document.addEventListener('mousedown', onMouseDown, false);
     document.addEventListener('mouseup', onMouseUp, false);
     document.addEventListener('mousemove', onMouseMove, false);
+
+    document.addEventListener("touchmove", onTouchMove);
+}
+
+function onTouchMove(e) {
+    e.preventDefault();
+    const touch = e.changedTouches.item(0);
+    touchSize = new THREE.Vector2(
+        touch.radiusX,
+        touch.radiusY
+    );
+
+    touchSize.x /= pixelSz;
+    touchSize.y /= pixelSz;
+
+    let clientX = e.touches[0].clientX;
+    let clientY = e.touches[0].clientY;
+
+    mouse.x = map(clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
+    mouse.y = map(clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
 }
 
 function onMouseUp(event) {
@@ -186,14 +228,14 @@ function map(value, min1, max1, min2, max2) {
 }
 
 function onMouseMove(event) {
-    if (!isMouseDown) return;
+    // if (!isMouseDown) return;
 
     event.preventDefault();
 
     switch (event.which) {
         case 1: // left mouse click
-            mouse.x = map(event.clientX, 0, window.innerWidth, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
-            mouse.y = map(event.clientY, 0, window.innerHeight, canvasPlaneSize.y / 2, - canvasPlaneSize.y / 2);
+            mouse.x = map(event.clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
+            mouse.y = map(event.clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
             break;
     }
 }
@@ -223,8 +265,8 @@ function render() {
     renderer.render(screenScene, screenCamera);
 
     let copyPos = new THREE.Vector2(
-        (window.innerWidth * pixelRatio / 2) - (textureSize / 2),
-        (window.innerHeight * pixelRatio / 2) - (textureSize / 2)
+        (rendererSz.x * pixelSz / 2) - (textureSize / 2),
+        (rendererSz.y * pixelSz / 2) - (textureSize / 2)
     );
     renderer.copyFramebufferToTexture(copyPos, frameTexture);
     b.material.uniforms.tFrameBuffer.value = frameTexture;
@@ -234,8 +276,8 @@ init();
 animate();
 
 window.addEventListener('resize', function (event) {
-    width = roundEven(window.innerWidth);
-    height = roundEven(window.innerHeight);
+    width = roundEven(rendererSz.x);
+    height = roundEven(rendererSz.y);
     canvasPlaneSize = new THREE.Vector2(
         width * 0.9,
         height * 0.9
@@ -244,6 +286,7 @@ window.addEventListener('resize', function (event) {
     ///Update main scene
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    renderer.getSize(rendererSz);
 
     ///Update meta scene
     rtTexture = new THREE.WebGLRenderTarget(
