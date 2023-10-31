@@ -5,7 +5,6 @@ import screenQuad_vert from "./screenQuad_vert.js";
 import screenQuad_frag from "./screenQuad_frag.js";
 import box1_vert from "./box1_vert.js";
 import box1_frag from "./box1_frag.js";
-import lut from "./lut.png"
 
 ///Dev tools
 // const stats = new Stats();
@@ -66,16 +65,18 @@ var b, point;
 var mouse = new THREE.Vector3(-1000, 0, 0);
 var isMouseDown = false;
 
-const lutTex = new THREE.TextureLoader().load(lut);
 
 var touchSize = new THREE.Vector2(50, 50);
 touchSize.x /= pixelSz;
 touchSize.y /= pixelSz;
 
+let canvas = document.getElementById("canvas");
+
 function init() {
 
     //create a webGL renderer
     renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
         antialias: false
     });
     let container = document.getElementById("canvasContainer");
@@ -162,7 +163,7 @@ function init() {
                 value: mouse
             },
             "tLUT": {
-                value: lutTex
+                value: null
             },
             "tFrameBuffer": {
                 value: frameTexture
@@ -201,9 +202,20 @@ function init() {
     document.addEventListener("touchmove", onTouchMove);
 }
 
+////////////////////////////////////////////////// INTERACTION //////////////////////////////////////////////////////
+// var offX = evt.layerX - mycanvas.offsetLeft;
+// var offY = evt.layerY - mycanvas.offsetTop;
+//var x_2 = touch.pageX - canvas.offsetLeft;
+//var y_2 = touch.pageY - canvas.offsetTop;
 function onTouchMove(e) {
     e.preventDefault();
-    const touch = e.changedTouches.item(0);
+    let touch = e.touches[0];
+
+    let touchPos = new THREE.Vector2(
+        touch.clientX,
+        touch.clientY
+    );
+
     touchSize = new THREE.Vector2(
         touch.radiusX,
         touch.radiusY
@@ -212,11 +224,8 @@ function onTouchMove(e) {
     touchSize.x /= pixelSz;
     touchSize.y /= pixelSz;
 
-    let clientX = e.touches[0].clientX;
-    let clientY = e.touches[0].clientY;
-
-    mouse.x = map(clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
-    mouse.y = map(clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
+    mouse.x = map(touchPos.x, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
+    mouse.y = map(touchPos.y, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
 }
 
 function onMouseUp(event) {
@@ -279,8 +288,8 @@ window.addEventListener('resize', function (event) {
     width = roundEven(rendererSz.x);
     height = roundEven(rendererSz.y);
     canvasPlaneSize = new THREE.Vector2(
-        width * 0.9,
-        height * 0.9
+        width,
+        height
     );
 
     ///Update main scene
