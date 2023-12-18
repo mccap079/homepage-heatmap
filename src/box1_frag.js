@@ -68,7 +68,8 @@ void main() {
     // vec3 col = vec3(red,0.0,0.0);
 
     //HSV COLOR
-    // vec3 col = hsv2rgb(vec3(map(distRad,1.0,0.0,0.2,0.0), 1.0,1.0));
+    // float hue = map(distRad,1.0,0.0,0.2,0.0);
+    // vec3 col = hsv2rgb(vec3(hue, 1.0,1.0));
 
     // float size_b = 0.05;
     float size_b = touchSizeNorm.x;
@@ -80,36 +81,69 @@ void main() {
 
     vec3 col = vec3(r,g,b);
 
-    vec4 lastFrameCol = texture2D(tFrameBuffer, uv);
-    lastFrameCol -= ATTENUATION;
-    lastFrameCol.r = 1.0;
-    // lastFrameCol.r -= 0.01;
-
     vec4 outCol;
-    //vec4 outCol = vec4(mix(vec3(1.0,0.0,1.0), lastFrameCol.rgb, 0.9), 1.0);
+
+    vec4 lastFrameCol = texture2D(tFrameBuffer, uv);    
+
+    //FOR TESTING PURPOSES:
+    touchSizeNorm.x = 0.03;
 
 
-    if(distRad > 0.05) {
+    if(distRad > touchSizeNorm.x) { //BEYOND PINK (BG)
+        lastFrameCol -= ATTENUATION;
+        lastFrameCol.r = 1.0;
+
         outCol.a = 0.0;
+        if(lastFrameCol.g > 0.5){
+                lastFrameCol.r = 0.0;
+                lastFrameCol.b += ATTENUATION * 2.0;
+        } else if(lastFrameCol.g > 0.0){
+            lastFrameCol.r += ATTENUATION * 4.0;
+            lastFrameCol.b = 0.0;
+        }
         outCol = lastFrameCol;
+        
     } else {
+        if(lastFrameCol.r > 0.9 && lastFrameCol.b > 0.9) {
+            outCol = vec4(0.0,1.0,0.0,1.0); //GREEN
+        } else {
+            outCol = vec4(1.0,0.0,1.0,1.0); //PINK
+            lastFrameCol -= ATTENUATION;
+            // lastFrameCol.r = 1.0;
+            if(lastFrameCol.g > 0.0){
+                lastFrameCol.r = 0.0;
+                outCol = lastFrameCol;
+            } else {
+                outCol = colorDodgeBlend(outCol, lastFrameCol);
+            }
+        }
+        
+        // float hue = map(distRad, 0.0, touchSizeNorm.x, 1.0, 0.0);
         // outCol = vec4(
         //         hsv2rgb(
         //             vec3(
-        //                 0.9,
-        //                 map(distRad, 0.0, 0.1, 0.0, 1.0),
+        //                 hue,
+        //                 1.0,
         //                 1.0
         //             )
         //         ),
         //         1.0
         // );
-        // if(distRad < 0.05){
-        //     float saturationRange = map(distRad, 0.0, 0.05, 0.0,0.0);
-        //     outCol = vec4(hsv2rgb(vec3(0.85,saturationRange,1.0)),1.0);
+        // if(distRad < touchSizeNorm.x){
+        //     float hue = 0.85;
+        //     float saturationRange = map(distRad, 0.0, 0.05, 0.0, 1.0);
+        //     outCol = vec4(hsv2rgb(vec3(hue,saturationRange,1.0)),1.0);
         // }else {
-            outCol = vec4(1.0,0.0,1.0,1.0);
+            // outCol = vec4(1.0,0.0,1.0,1.0); //PINK
         // }
-        outCol = colorDodgeBlend(outCol, lastFrameCol);
+
+        //BLEND
+        // if(distRad <touchSizeNorm.x * 0.9){
+        //     outCol = mix(vec4(0.0,1.0,0.0,1.0), lastFrameCol, 0.5);
+        // } else {
+        
+
+        // }
 
     }
 
