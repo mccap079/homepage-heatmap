@@ -81,7 +81,7 @@ function init() {
     });
     let container = document.getElementById("canvasContainer");
     renderer.setSize(container.offsetWidth, container.offsetHeight);
-    renderer.setClearColor(0x7e7e7e);
+    renderer.setClearColor(0xff0000);
     renderer.autoClear = false;
     document.body.appendChild(renderer.domElement);
     renderer.getSize(rendererSz);
@@ -158,6 +158,9 @@ function init() {
             },
             "touchSize": {
                 value: touchSize
+            },
+            "pixelSize": {
+                value: pixelSz
             },
             "mouse": {
                 value: mouse
@@ -241,12 +244,12 @@ function onMouseMove(event) {
 
     event.preventDefault();
 
-    switch (event.which) {
-        case 1: // left mouse click
-            mouse.x = map(event.clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
-            mouse.y = map(event.clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
-            break;
-    }
+    // if pixelSize = 4
+    // mouse.x = map(event.clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
+    // mouse.y = map(event.clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
+    // if pixelSize = 8
+    mouse.x = map(event.clientX, 0, textureSize.x, -canvasPlaneSize.x / 2, canvasPlaneSize.x / 2);
+    mouse.y = map(event.clientY, 0, textureSize.y, -canvasPlaneSize.y / 4, -canvasPlaneSize.y * 1.25);
 }
 
 function onMouseDown(event) {
@@ -257,7 +260,7 @@ function animate() {
     // stats.begin();
     requestAnimationFrame(animate);
     var time = performance.now() * 0.001;
-    point.position.set(mouse.x, mouse.y, 0);
+    // point.position.set(mouse.x, mouse.y, 0);
     render();
     // stats.end();
 }

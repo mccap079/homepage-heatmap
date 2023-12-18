@@ -4,7 +4,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "dev": "npx webpack serve --no-client-overlay --live-reload",
+    "dev": "npx webpack serve --no-client-overlay --live-reload --mode=development",
     "build": "webpack"
   },
   "keywords": [],
